@@ -1,6 +1,8 @@
 import os
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pymap3d as pm
 
 # u-blox example
 datadir = '../data/wine/static'
@@ -10,7 +12,7 @@ basefile = 'base_COM7___460800_250416_143415.obs'
 os.chdir(datadir)
 
 # set run parameters
-maxepoch = 1005  # max # of epochs, used for debug, None = no limit
+maxepoch = 1000  # max # of epochs, used for debug, None = no limit
 basepos = []  # default to not specified here
 
 # import rtklib files
@@ -38,14 +40,29 @@ elif nav.rb[0] == 0:
 print('Reading nav data...')
 rov.decode_nav(navfile, nav)
 
-# OBS data
-# .P : pseudorange
+#
+print(f'Rover Position ECEF: {rov.pos}')
+llh = pm.ecef2geodetic(*rov.pos)
+print(f'Rover Position LLH: {llh}')
 
+print(f'Base Position ECEF: {base.pos}')
+llh = pm.ecef2geodetic(*base.pos)
+print(f'Base Position LLH: {llh}')
 
+print(f'Distance ECEF: {np.linalg.norm(rov.pos - base.pos)} meters')
 
 #
 print('Plotting...')
 num_epochs = len(rov.obslist)
+
+plt.figure()
+for i in range(num_epochs):
+    plt.plot(i, sats[i][j], color='r', marker='o', ls='none')
+plt.xlabel('Epoch')
+plt.ylabel('Sat ID')
+plt.show()
+plt.close()
+
 sats = []
 for i in range(num_epochs):
     sats.append(rov.obslist[i].sat)

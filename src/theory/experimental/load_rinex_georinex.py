@@ -5,32 +5,35 @@ import matplotlib.pyplot as plt
 import pymap3d as pm
 
 
-def process_obs_data(file_path, time_limits):
+def process_rinex_data(file_path, time_limits):
     """
-    Process observation data from a RINEX file.
+    Process data from a RINEX file.
 
     Args:
-        file_path (str): Path to the RINEX observation file
+        file_path (str): Path to the RINEX file
         time_limits (list): Time limits for data loading [start, end]
 
     Returns:
-        tuple: (obs_data, dataframe) - The observation data and its DataFrame representation
+        tuple: (data, dataframe) - The data and its DataFrame representation
     """
     print(f'Reading obs data from {os.path.basename(file_path)}...')
-    obs_data = gr.load(file_path, tlim=time_limits)
+    rinex_data = gr.load(file_path, tlim=time_limits)  # , use='G', useindicators=True)
 
-    print(f'Position ECEF: {obs_data.position}')
-    llh = pm.ecef2geodetic(*obs_data.position)
-    print(f'Position LLH: {llh}')
-    print(f'Position LLH: {obs_data.position_geodetic}')
+    try:
+        print(f'Position ECEF: {rinex_data.position}')
+        llh = pm.ecef2geodetic(*rinex_data.position)
+        print(f'Position LLH: {llh}')
+        print(f'Position LLH: {rinex_data.position_geodetic}')
+    except Exception as ex:
+        print(f'Failed to read ECEF: {ex}')
 
-    print(f'Tracking of satellites: {obs_data.sv.data}')
+    print(f'Tracking of satellites: {rinex_data.sv.data}')
 
     # Convert to dataframe
-    df = obs_data.to_dataframe()
+    df = rinex_data.to_dataframe()
     df = df.reset_index()
 
-    return obs_data, df
+    return rinex_data, df
 
 
 def plot_satellite_cno(df, obs_columns):
@@ -69,12 +72,16 @@ nav_file = 'base_COM7___460800_250416_143415.nav'
 rover_file = 'rover1_COM13___460800_250416_143419.obs'
 base_file = 'base_COM7___460800_250416_143415.obs'
 
+# Process nav data
+nav_path = os.path.join(datadir, nav_file)
+nav = gr.load(nav_path)
+
 # Define time limits for data loading
-time_limits = ['2025-04-16T14:34', '2025-04-17T14:34']
+time_limits = ['2025-04-16T14:34', '2025-04-16T14:44']
 
 # Process rover data
 rover_path = os.path.join(datadir, rover_file)
-rover, rover_df = process_obs_data(rover_path, time_limits)
+rover, rover_df = process_rinex_data(rover_path, time_limits)
 
 # List of observable columns (for reference)
 observables_col = ['C1C', 'L1C', 'D1C', 'S1C', 'C2X', 'L2X', 'D2X', 'S2X']
@@ -87,7 +94,7 @@ plot_satellite_cno(rover_df, obs_cno)
 
 # Process base data
 base_path = os.path.join(datadir, base_file)
-base, base_df = process_obs_data(base_path, time_limits)
+base, base_df = process_rinex_data(base_path, time_limits)
 
 # Plot base data
 plot_satellite_cno(base_df, obs_cno)
