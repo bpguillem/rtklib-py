@@ -212,14 +212,14 @@ def plot_satellite_worldmap(positions, obs_time=None, elevation_mask=0, receiver
         positions (dict): Dictionary of {PRN: ECEF_position} from compute_satellite_position()
         obs_time (datetime): Observation time (for title)
         elevation_mask (float): Minimum elevation angle to consider visible (degrees)
+        receiver_lla (list): Receiver LLA
     """
     # Create figure with Plate Carrée projection
     fig = plt.figure(figsize=(15, 8), tight_layout=True)
     ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
 
-    ax.set_global()  # Key addition for full world coverage
-
     # Add map features
+    ax.set_global()  # Full world coverage
     ax.add_feature(cfeature.LAND, facecolor='lightgray')
     ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
     ax.add_feature(cfeature.COASTLINE, edgecolor='black')
@@ -258,7 +258,7 @@ def plot_satellite_worldmap(positions, obs_time=None, elevation_mask=0, receiver
         ax.plot(lon, lat, 'go', markersize=8, transform=ccrs.Geodetic())
 
     if elevation_mask > 0:
-        title += f"\n(Elevation > {elevation_mask}°)"
+        title += f"; (Elevation > {elevation_mask}°)"
 
     plt.title(title, fontsize=14)
     plt.legend(['All Satellites', 'Receiver', 'Visible'], loc='lower left')
@@ -314,12 +314,10 @@ for prn in prn_active_list:
     # Store
     positions[prn] = result
 
-fig, ax = plot_satellite_worldmap(
-    positions=positions,
-    obs_time=obs_time,
-    elevation_mask=30,
-    receiver_lla=[41.1, 2.2, 0]
-)
+fig, ax = plot_satellite_worldmap(positions=positions,
+                                  obs_time=obs_time,
+                                  elevation_mask=30,
+                                  receiver_lla=[41.1, 2.2, 0])
 plt.show()
 plt.close()
 
