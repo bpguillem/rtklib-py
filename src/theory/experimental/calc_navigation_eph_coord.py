@@ -10,18 +10,14 @@ import sys
 from datetime import datetime
 
 import georinex as gr
-import numpy as np
-import pandas as pd
-import pymap3d as pm
 import matplotlib.pyplot as plt
+import pymap3d as pm
 
 # Import functions from the nav_utils package
 from src.theory.experimental.nav_utils import (
     generate_gps_prn_list,
-    gps_to_datetime,
     datetime_to_gps_seconds,
     compute_satellite_position,
-    plot_satellite_worldmap,
     plot_satellite_worldmap_3d,
     plot_satellite_3d_plotly
 )
@@ -30,6 +26,20 @@ from src.theory.experimental.nav_utils import (
 # https://server.gage.upc.edu/gLAB/HTML/GPS_Navigation_Rinex_v3.04.html
 
 """
+Two different approaches are followed by the GPS/Galileo/Beidou and
+Glonass satellites to account for satellite orbit perturbations. These ap-
+proaches define what their messages contain.
+
+In the case of the GPS, Galileo or Beidou satellites, the orbits are seen
+as Keplerian in a first approximation, and the perturbations are treated as
+temporal variations in the orbital elements.
+Indeed, an extended set of 16 quasi-Keplerian parameters 
+is broadcast to the user in the navigation message and regularly updated.
+This expanded set consists of the six orbital elements (a(t), e(t), i(t), Ω(t),
+ω(t), M (t)) and three rate parameters to account for the linear changes with
+time (Ω, i, ∆n), three pairs of sinusoidal corrections (Cc , Cs ) (i.e. Cc cos(2φ),
+Cs sin(2φ)), and the reference ephemeris epoch toe.
+
 These parameters are renewed periodically (typically every two hours for GPS)
 and must not be used after the prescribed time (about four hours), because
 the extrapolation error grows exponentially beyond this validity period.
